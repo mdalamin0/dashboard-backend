@@ -23,6 +23,9 @@ const connection = mongoose.connection;
 connection.once("open", () => {
   console.log("MongoDB Connections successfull");
 });
+app.get('/', (req, res) => {
+  res.send('this project is running')
+})
 app.use('/files', express.static('files'));
 app.use("/api/users/", userRoute);
 app.use("/api/products/", productRoute);

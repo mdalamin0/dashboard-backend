@@ -143,7 +143,8 @@ export const addProduct = async (req, res) => {
       });
     });
 
-    const newProduct = await product.save();
+    const newProduct = await Product.insertOne(product);
+    console.log(newProduct)
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(500).json({ error: error });
