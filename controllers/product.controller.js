@@ -2,7 +2,6 @@ import Product from "../model/product.model.js";
 
 // Import the Product model
 
-
 // Controller function to store product data
 // export const addProduct = async (req, res) => {
 //   try {
@@ -67,7 +66,6 @@ import Product from "../model/product.model.js";
 //   }
 // };
 
-
 // Add a new product
 // import Product from '../models/product';
 
@@ -87,11 +85,13 @@ export const addProduct = async (req, res) => {
       images,
       ratings,
       reviews,
-      variants
+      variants,
     } = req.body;
-
     // Calculate the sum of stocks in variants
-    const quantity = variants.reduce((acc, variant) => acc + variant.size.stock, 0);
+    const quantity = variants.reduce(
+      (acc, variant) => acc.stock + variant.stock
+    );
+    console.log(quantity)
 
     const product = new Product({
       name,
@@ -107,14 +107,14 @@ export const addProduct = async (req, res) => {
       images,
       ratings: [], // Initialize with empty array
       reviews: [], // Initialize with empty array
-      variants: [] // Initialize with empty array
+      variants: [], // Initialize with empty array
     });
 
     // Add ratings to the product
     ratings.forEach((rating) => {
       product.ratings.push({
         user: rating.user,
-        rating: rating.rating
+        rating: rating.rating,
       });
     });
 
@@ -122,37 +122,35 @@ export const addProduct = async (req, res) => {
     reviews.forEach((review) => {
       product.reviews.push({
         user: review.user,
-        review: review.review
+        review: review.review,
       });
     });
 
     // Add variants to the product
     variants.forEach((variant) => {
+      console.log(variant)
       product.variants.push({
         color: {
           color_name: variant.color.color_name,
-          color_code: variant.color.color_code
+          color_code: variant.color.color_code,
         },
         id: variant.id,
         image_id: variant.image_id,
         size: {
           size: variant.size.size,
-          stock: variant.size.stock
+          stock: variant.size.stock,
         },
-        sku: variant.sku
+        sku: variant.sku,
       });
     });
 
-    const newProduct = await Product.insertOne(product);
-    console.log(newProduct)
+    const newProduct = await product.save();
+    console.log(newProduct);
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(500).json({ error: error });
   }
 };
-
-
-
 
 // Controller function to get all products
 export const getProducts = async (req, res) => {
@@ -163,15 +161,15 @@ export const getProducts = async (req, res) => {
     // Return the products in the response
     return res.status(200).json({
       success: true,
-      message: 'Products retrieved successfully',
-      products
+      message: "Products retrieved successfully",
+      products,
     });
   } catch (error) {
-    console.error('Error retrieving products:', error);
+    console.error("Error retrieving products:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve products',
-      error: error.message
+      message: "Failed to retrieve products",
+      error: error.message,
     });
   }
 };
@@ -187,22 +185,22 @@ export const getProductById = async (req, res) => {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: "Product not found",
       });
     }
 
     // Return the product in the response
     return res.status(200).json({
       success: true,
-      message: 'Product retrieved successfully',
-      product
+      message: "Product retrieved successfully",
+      product,
     });
   } catch (error) {
-    console.error('Error retrieving product:', error);
+    console.error("Error retrieving product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve product',
-      error: error.message
+      message: "Failed to retrieve product",
+      error: error.message,
     });
   }
 };
@@ -224,22 +222,22 @@ export const updateProductById = async (req, res) => {
     if (!updatedProduct) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: "Product not found",
       });
     }
 
     // Return the updated product in the response
     return res.status(200).json({
       success: true,
-      message: 'Product updated successfully',
-      product: updatedProduct
+      message: "Product updated successfully",
+      product: updatedProduct,
     });
   } catch (error) {
-    console.error('Error updating product:', error);
+    console.error("Error updating product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to update product',
-      error: error.message
+      message: "Failed to update product",
+      error: error.message,
     });
   }
 };
@@ -256,21 +254,21 @@ export const deleteProductById = async (req, res) => {
     if (!deletedProduct) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: "Product not found",
       });
     }
 
     // Return a success response
     return res.status(200).json({
       success: true,
-      message: 'Product deleted successfully'
+      message: "Product deleted successfully",
     });
   } catch (error) {
-    console.error('Error deleting product:', error);
+    console.error("Error deleting product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to delete product',
-      error: error.message
+      message: "Failed to delete product",
+      error: error.message,
     });
   }
 };
@@ -316,22 +314,22 @@ export const getProductsByCategory = async (req, res) => {
     if (products.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No products found in the specified category'
+        message: "No products found in the specified category",
       });
     }
 
     // Return the products in the response
     return res.status(200).json({
       success: true,
-      message: 'Products retrieved successfully',
-      products
+      message: "Products retrieved successfully",
+      products,
     });
   } catch (error) {
-    console.error('Error retrieving products by category:', error);
+    console.error("Error retrieving products by category:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve products by category',
-      error: error.message
+      message: "Failed to retrieve products by category",
+      error: error.message,
     });
   }
 };
@@ -343,67 +341,65 @@ export const getProductsByTopRatings = async (req, res) => {
 
     // Find products sorted by highest ratings and limit the results
     const products = await Product.find()
-      .sort({ 'rating': -1 })
+      .sort({ rating: -1 })
       .limit(parseInt(limit));
 
     // If no products are found, return a not found response
     if (products.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No products found with top ratings'
+        message: "No products found with top ratings",
       });
     }
 
     // Return the products in the response
     return res.status(200).json({
       success: true,
-      message: 'Products retrieved successfully',
-      products
+      message: "Products retrieved successfully",
+      products,
     });
   } catch (error) {
-    console.error('Error retrieving products by top ratings:', error);
+    console.error("Error retrieving products by top ratings:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve products by top ratings',
-      error: error.message
+      message: "Failed to retrieve products by top ratings",
+      error: error.message,
     });
   }
 };
-
 
 // Controller function to get products by most reviewed
 export const getProductsByMostReviewed = async (req, res) => {
   try {
     // Find products sorted by highest review count
     const products = await Product.aggregate([
-      { $project: { _id: 1, name: 1, reviewCount: { $size: '$reviews' } } },
-      { $sort: { reviewCount: -1 } }
+      { $project: { _id: 1, name: 1, reviewCount: { $size: "$reviews" } } },
+      { $sort: { reviewCount: -1 } },
     ]);
 
     // If no products are found, return a not found response
     if (products.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No products found with reviews'
+        message: "No products found with reviews",
       });
     }
 
     // Return the products in the response
     return res.status(200).json({
       success: true,
-      message: 'Products retrieved successfully',
-      products
+      message: "Products retrieved successfully",
+      products,
     });
   } catch (error) {
-    console.error('Error retrieving products by most reviewed:', error);
+    console.error("Error retrieving products by most reviewed:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve products by most reviewed',
-      error: error.message
+      message: "Failed to retrieve products by most reviewed",
+      error: error.message,
     });
   }
 };
-
 
 // Controller function to add a review to a product
 export const addReviewToProduct = async (req, res) => {
@@ -418,14 +414,14 @@ export const addReviewToProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: "Product not found",
       });
     }
 
     // Create a new review object
     const newReview = {
       user,
-      review
+      review,
     };
 
     // Add the review to the product's reviews array
@@ -437,15 +433,15 @@ export const addReviewToProduct = async (req, res) => {
     // Return success response
     return res.status(201).json({
       success: true,
-      message: 'Review added successfully',
-      review: newReview
+      message: "Review added successfully",
+      review: newReview,
     });
   } catch (error) {
-    console.error('Error adding review to product:', error);
+    console.error("Error adding review to product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to add review to product',
-      error: error.message
+      message: "Failed to add review to product",
+      error: error.message,
     });
   }
 };
@@ -463,14 +459,14 @@ export const addRatingToProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: 'Product not found'
+        message: "Product not found",
       });
     }
 
     // Create a new rating object
     const newRating = {
       user,
-      rating
+      rating,
     };
 
     // Add the rating to the product's rating array
@@ -482,39 +478,35 @@ export const addRatingToProduct = async (req, res) => {
     // Return success response
     return res.status(201).json({
       success: true,
-      message: 'Rating added successfully',
-      rating: newRating
+      message: "Rating added successfully",
+      rating: newRating,
     });
   } catch (error) {
-    console.error('Error adding rating to product:', error);
+    console.error("Error adding rating to product:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to add rating to product',
-      error: error.message
+      message: "Failed to add rating to product",
+      error: error.message,
     });
   }
 };
-
 
 export const getNewProducts = async (req, res) => {
   try {
     const { limit } = req.query;
     const query = Product.find({
       new: true,
-      createdAt: { $lte: new Date() }
+      createdAt: { $lte: new Date() },
     })
       .sort({ createdAt: -1 })
       .limit(parseInt(limit, 10) || 10);
 
     const products = await query.exec();
     res.json({ status: 200, success: true, products: products });
-
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve new products' });
+    res.status(500).json({ error: "Failed to retrieve new products" });
   }
 };
-
-
 
 export const searchProducts = async (req, res) => {
   try {
@@ -526,15 +518,15 @@ export const searchProducts = async (req, res) => {
     // Provide search suggestions based on partial matching
     const suggestions = await Product.find(
       { $text: { $search: query } },
-      { score: { $meta: 'textScore' } }
+      { score: { $meta: "textScore" } }
     )
-      .sort({ score: { $meta: 'textScore' } })
+      .sort({ score: { $meta: "textScore" } })
       .limit(5)
-      .select('name');
+      .select("name");
 
     res.json({ products, suggestions });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to search products' });
+    res.status(500).json({ error: "Failed to search products" });
   }
 };
 // Controller function to update stock by color and size
@@ -598,33 +590,25 @@ export const searchProducts = async (req, res) => {
 //     }
 //   };
 
-
-
-
 export const addVariant = async (req, res) => {
   try {
     const productId = req.query.productId;
     const { variant } = req.body;
-    console.log(variant)
+    console.log(variant);
 
     const product = await Product.findById({ _id: productId });
 
-
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
     const updatedVariants = [...product.variants, variant];
     product.variants = updatedVariants;
 
-
-
     // console.log("firstProductId:", product)
-
-
 
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to add variant', error: error });
+    res.status(500).json({ message: "Failed to add variant", error: error });
   }
 };
